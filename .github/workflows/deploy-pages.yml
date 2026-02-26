@@ -1,4 +1,4 @@
-# Deploy Retail Roulette to GitHub Pages at https://<user>.github.io/NSTEM_Final/
+# Deploy Retail Roulette to GitHub Pages at https://retail-roulette.github.io/NSTEM/
 name: Deploy to GitHub Pages
 
 on:
@@ -24,10 +24,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+
+      - name: Verify Node and npm
+        run: node -v && npm -v
 
       - name: Install and build
-        run: npm ci && npm run build
+        run: |
+          npm install
+          npm run build
         env:
           NODE_ENV: production
 
