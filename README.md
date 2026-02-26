@@ -1,6 +1,6 @@
-# Retail Royale
+# Retail Roulette
 
-A real-time multiplayer scavenger hunt game for retail stores (Walmart/Target). Players scan barcodes to find assigned products.
+A real-time multiplayer scavenger hunt game for retail stores (Walmart/Target). Players find assigned products and tap "I found it!"
 
 ## Features
 
@@ -19,15 +19,16 @@ npm run dev
 
 Open http://localhost:5173
 
-## Setup Firebase (Optional)
+## Setup Firebase (required for cross-device play)
 
-For real-time multiplayer across devices:
+**Joining from another device (e.g. phone joining a game created on a laptop) only works with Firebase.** Without it, parties are stored in the browser’s localStorage, so they’re only visible on the same device.
 
 1. Create a [Firebase project](https://console.firebase.google.com)
-2. Enable Realtime Database
-3. Copy `.env.example` to `.env` and add your config
+2. Enable **Realtime Database** (not Firestore)
+3. Copy `.env.example` to `.env` and add your project’s config (from Firebase Console → Project settings)
+4. Rebuild and redeploy: `npm run build` then `npx gh-pages -d dist`
 
-Without Firebase, the app uses localStorage for local testing (single device).
+Without Firebase, the app still works for testing on one device (e.g. multiple tabs).
 
 ## Project Structure
 

@@ -179,3 +179,45 @@ export async function recordScan(code, playerId, timeTaken, points, teamKey = nu
   }
   await updateParty(code, { roundResults: results });
 }
+
+/**
+ * Play Again: create a new party with a new code, same settings and same players (everyone stays in lobby).
+ * Writes redirectToCode on the old party so other clients can navigate to the new lobby.
+ */
+export async function playAgain(code) {
+  const party = await getParty(code);
+  if (!party) return { error: 'Party not found' };
+  const newCode = generatePartyCode();
+  const newPartyData = {
+    code: newCode,
+    hostId: party.hostId,
+    store: party.store,
+    mode: party.mode,
+    rounds: party.rounds,
+    timePerRound: party.timePerRound,
+    categories: party.categories || ['All Categories'],
+    numTeams: party.numTeams || 2,
+    players: { ...(party.players || {}) },
+    teams: party.teams ? Object.fromEntries(
+      Object.entries(party.teams).map(([k, v]) => [k, [...(v || [])]])
+    ) : null,
+    unassigned: [...(party.unassigned || [])],
+    state: 'lobby',
+    currentRound: 0,
+    roundResults: {},
+    gameResults: {},
+    createdAt: Date.now(),
+  };
+  if (db) {
+    await set(ref(db, `${PARTIES_KEY}/${newCode}`), newPartyData);
+    await update(ref(db, `${PARTIES_KEY}/${code}`), { redirectToCode: newCode });
+  } else {
+    setLocalParty(newCode, newPartyData);
+    const oldParty = getLocalParty(code);
+    if (oldParty) {
+      Object.assign(oldParty, { redirectToCode: newCode });
+      setLocalParty(code, oldParty);
+    }
+  }
+  return { newCode };
+}

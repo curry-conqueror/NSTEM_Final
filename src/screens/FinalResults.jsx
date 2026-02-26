@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { subscribeToParty } from '../lib/gameState';
+import { subscribeToParty, playAgain } from '../lib/gameState';
 
 export default function FinalResults() {
   const { code } = useParams();
   const navigate = useNavigate();
   const [party, setParty] = useState(null);
   const [me, setMe] = useState(null);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`party_${code}`);
@@ -16,9 +17,29 @@ export default function FinalResults() {
     return unsub;
   }, [code]);
 
-  function handlePlayAgain() {
-    navigate(`/`);
+  // When host starts Play Again, everyone is sent to the new lobby
+  useEffect(() => {
+    if (!party?.redirectToCode || !me) return;
+    const newCode = party.redirectToCode;
+    const lobbyPath = party.mode === 'teams' ? '/lobby/teams/' : '/lobby/singular/';
+    sessionStorage.setItem(`party_${newCode}`, JSON.stringify(me));
     sessionStorage.removeItem(`party_${code}`);
+    navigate(`${lobbyPath}${newCode}`, { replace: true });
+  }, [party?.redirectToCode, party?.mode, me, code, navigate]);
+
+  async function handlePlayAgain() {
+    if (!me || me.id !== party?.hostId) return;
+    setCreating(true);
+    try {
+      const { newCode } = await playAgain(code);
+      if (!newCode) return;
+      const lobbyPath = party.mode === 'teams' ? '/lobby/teams/' : '/lobby/singular/';
+      sessionStorage.setItem(`party_${newCode}`, JSON.stringify(me));
+      sessionStorage.removeItem(`party_${code}`);
+      navigate(`${lobbyPath}${newCode}`, { replace: true });
+    } finally {
+      setCreating(false);
+    }
   }
 
   if (!party) return <div className="page"><p>Loading...</p></div>;
@@ -90,9 +111,17 @@ export default function FinalResults() {
         </div>
       )}
       <div className="final-actions">
-        <button className="btn btn-primary" onClick={handlePlayAgain}>
-          Play Again
-        </button>
+        {party.hostId === me?.id ? (
+          <button
+            className="btn btn-primary"
+            onClick={handlePlayAgain}
+            disabled={creating}
+          >
+            {creating ? 'Creating new lobby…' : 'Play Again'}
+          </button>
+        ) : (
+          <p className="waiting-msg">Waiting for host to play again…</p>
+        )}
         <Link to="/">
           <button className="btn btn-secondary">Home</button>
         </Link>

@@ -20,7 +20,7 @@ export default function JoinParty() {
     try {
       const party = await getParty(code.trim().toUpperCase());
       if (!party) {
-        setError('Party not found. Check the code.');
+        setError('Party not found. To join from another device (e.g. phone), the host needs Firebase set up in the app.');
         setLoading(false);
         return;
       }
@@ -75,6 +75,7 @@ export default function JoinParty() {
           {loading ? 'Joining...' : 'Join'}
         </button>
       </form>
+      <p className="form-hint">Joining from another device (e.g. phone) requires the host to have Firebase configured.</p>
       <Link to="/">
         <button className="btn btn-ghost">Back</button>
       </Link>

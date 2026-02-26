@@ -186,6 +186,13 @@ input, select {
   color: var(--gray);
 }
 
+.form-hint {
+  font-size: 0.8rem;
+  color: var(--gray);
+  text-align: center;
+  max-width: 280px;
+}
+
 .error {
   color: #f44;
   font-size: 0.9rem;
